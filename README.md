@@ -33,6 +33,7 @@ recovrr/
 
 - Python 3.13+
 - `uv` package manager
+- Supabase project (database and API)
 - API keys for AI services (OpenAI/Anthropic)
 - Optional: SendGrid (email), Twilio (SMS) for notifications
 
@@ -57,13 +58,26 @@ recovrr/
    # Edit .env with your API keys and settings
    ```
 
-3. **Initialize database:**
-   ```bash
-   # For development (SQLite)
-   export DATABASE_URL="sqlite:///./recovrr.db"
+3. **Set up Supabase:**
    
-   # Or for production (PostgreSQL)
-   export DATABASE_URL="postgresql://user:password@localhost:5432/recovrr"
+   a. Create a new project at [supabase.com](https://supabase.com)
+   
+   b. Get your project details:
+   - Project URL: `https://your-project-id.supabase.co`
+   - Anon Key: From Settings > API
+   - Database Password: From Settings > Database
+   
+   c. Update your `.env` file:
+   ```bash
+   SUPABASE_URL=https://your-project-id.supabase.co
+   SUPABASE_KEY=your_supabase_anon_key
+   SUPABASE_DB_PASSWORD=your_database_password
+   ```
+   
+   d. Initialize database tables:
+   ```python
+   from recovrr.database import init_db
+   init_db()  # Creates tables in your Supabase database
    ```
 
 4. **Install browser for Facebook scraping:**
@@ -138,8 +152,10 @@ asyncio.run(start_monitoring())
 Create a `.env` file with the following variables:
 
 ```bash
-# Database
-DATABASE_URL=sqlite:///./recovrr.db
+# Supabase Database
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_KEY=your_supabase_anon_key
+SUPABASE_DB_PASSWORD=your_database_password
 
 # AI Services
 OPENAI_API_KEY=your_openai_key
@@ -252,25 +268,64 @@ from recovrr.scrapers import ScraperFactory
 ScraperFactory.register_scraper("new_marketplace", NewMarketplaceScraper)
 ```
 
-## 📊 Database Schema
+## 🗄️ Supabase Integration
 
-### Search Profiles
+### Why Supabase?
+
+Recovrr uses **Supabase** as its database platform, which provides:
+
+- **Managed PostgreSQL**: No database administration required
+- **Real-time Subscriptions**: Get notified instantly when matches are found
+- **Built-in APIs**: REST and GraphQL APIs automatically generated
+- **Dashboard**: Visual interface to view your data
+- **Row Level Security**: Built-in data protection
+- **Automatic Backups**: Your data is safely backed up
+
+### Supabase Features Used
+
+1. **PostgreSQL Database**: Stores all listings, profiles, and analysis results
+2. **Real-time API**: Optional instant notifications via websockets
+3. **REST API**: Direct database queries when needed
+4. **Dashboard**: View statistics and manage data visually
+
+### Database Schema
+
+#### Search Profiles
 - Item details (make, model, color, size)
 - Unique features and descriptions
 - Search parameters and location
 - Owner contact information
 
-### Listings
+#### Listings
 - Marketplace listing details
 - Extracted content (title, description, price)
 - Images and metadata
 - Processing status
 
-### Analysis Results
+#### Analysis Results
 - AI match scores and reasoning
 - Confidence levels and recommendations
 - Model version tracking
 - Notification status
+
+### Advanced Supabase Usage
+
+```python
+from recovrr.database import get_supabase_service
+
+# Get dashboard statistics
+supabase = get_supabase_service()
+stats = supabase.get_dashboard_stats()
+print(f"Active profiles: {stats['active_profiles']}")
+print(f"Total matches: {stats['matches_found']}")
+
+# Search listings with full-text search
+results = supabase.search_listings_by_text("cannondale road bike")
+
+# Get analytics for a specific profile
+analytics = supabase.get_profile_analytics(profile_id=1)
+print(f"Average match score: {analytics['avg_match_score']}")
+```
 
 ## 🔒 Security & Privacy
 

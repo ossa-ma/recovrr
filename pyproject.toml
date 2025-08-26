@@ -11,9 +11,7 @@ dependencies = [
     "python-dotenv",
     
     # Database
-    "sqlalchemy",
-    "alembic",
-    "psycopg2-binary",
+    "supabase",
     
     # Web scraping and automation
     "requests",

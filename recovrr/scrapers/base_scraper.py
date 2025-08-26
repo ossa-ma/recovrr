@@ -132,7 +132,7 @@ class BaseScraper(ABC):
         """Scrape listings for a specific search profile.
         
         Args:
-            search_profile: Search profile dictionary from database
+            search_profile: Search profile dictionary (from Pydantic model)
             
         Returns:
             List of new listings
@@ -147,9 +147,11 @@ class BaseScraper(ABC):
             # Perform the search
             listings = await self.search(search_terms, location)
             
-            # Add marketplace identifier to each listing
+            # Add marketplace identifier and timestamp to each listing
+            from datetime import datetime
             for listing in listings:
                 listing['marketplace'] = self.marketplace_name
+                listing['scraped_at'] = datetime.now().isoformat()
                 
             logger.info(f"Found {len(listings)} listings on {self.marketplace_name}")
             return listings

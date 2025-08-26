@@ -5,10 +5,9 @@ import logging
 from typing import List, Dict, Any
 from datetime import datetime
 
-from sqlalchemy.orm import Session
-
 from ..config import settings
-from ..database import get_session, SearchProfile, Listing, AnalysisResult
+from ..database import search_profile_db, listing_db, analysis_result_db
+from ..models import SearchProfile, Listing, AnalysisResult
 from ..scrapers import ScraperFactory
 from ..agents import MatcherAgent
 from ..notifications import NotificationService
@@ -35,8 +34,7 @@ class MonitoringJob:
         
         try:
             # Get active search profiles
-            with get_session() as db:
-                search_profiles = db.query(SearchProfile).filter(SearchProfile.active == True).all()
+            search_profiles = await search_profile_db.get_active_search_profiles()
                 
             if not search_profiles:
                 logger.info("No active search profiles found")
@@ -97,10 +95,7 @@ class MonitoringJob:
         available_marketplaces = ScraperFactory.get_available_marketplaces()
         
         # Track existing URLs to avoid duplicates
-        with get_session() as db:
-            existing_urls = set(
-                url[0] for url in db.query(Listing.url).all()
-            )
+        existing_urls = await listing_db.get_existing_urls()
             
         # Limit concurrent scrapers to avoid overwhelming sites
         semaphore = asyncio.Semaphore(settings.max_concurrent_scrapers)
@@ -111,7 +106,7 @@ class MonitoringJob:
                 try:
                     scraper = ScraperFactory.get_scraper(marketplace)
                     async with scraper:
-                        listings = await scraper.scrape_search_profile(profile.to_dict())
+                        listings = await scraper.scrape_search_profile(profile.to_search_dict())
                         
                         # Filter out duplicates
                         new_listings = []
@@ -156,22 +151,23 @@ class MonitoringJob:
             listings: List of listing dictionaries
         """
         try:
-            with get_session() as db:
-                for listing_data in listings:
-                    listing = Listing(
-                        url=listing_data['url'],
-                        title=listing_data['title'],
-                        description=listing_data.get('description', ''),
-                        price=listing_data.get('price'),
-                        location=listing_data.get('location'),
-                        image_urls=listing_data.get('image_urls', []),
-                        marketplace=listing_data['marketplace'],
-                        status='new'
-                    )
-                    db.add(listing)
+            for listing_data in listings:
+                # Create Listing model and convert to db dict
+                listing = Listing(
+                    url=listing_data['url'],
+                    title=listing_data['title'],
+                    description=listing_data.get('description', ''),
+                    price=listing_data.get('price'),
+                    location=listing_data.get('location'),
+                    image_urls=listing_data.get('image_urls', []),
+                    marketplace=listing_data['marketplace'],
+                    status='new',
+                    created_at=datetime.now(),
+                    scraped_at=datetime.fromisoformat(listing_data.get('scraped_at', datetime.now().isoformat()))
+                )
+                await listing_db.create_listing(listing.to_db_dict())
                     
-                db.commit()
-                logger.info(f"Saved {len(listings)} new listings to database")
+            logger.info(f"Saved {len(listings)} new listings to database")
                 
         except Exception as e:
             logger.error(f"Error saving listings to database: {e}")
@@ -198,56 +194,48 @@ class MonitoringJob:
                 try:
                     # Run AI analysis
                     analysis_result = await self.matcher_agent.check_match(
-                        listing_data, profile.to_dict()
+                        listing_data, profile.to_search_dict()
                     )
                     
-                    # Save analysis result to database
-                    with get_session() as db:
-                        # Get the saved listing
-                        listing = db.query(Listing).filter(Listing.url == listing_data['url']).first()
-                        if not listing:
-                            continue
-                            
-                        # Create analysis result record
-                        analysis = AnalysisResult(
-                            listing_id=listing.id,
-                            search_profile_id=profile.id,
-                            match_score=analysis_result['match_score'],
-                            reasoning=analysis_result['reasoning'],
-                            confidence_level=analysis_result['confidence_level'],
-                            model_used=self.matcher_agent.model_name,
-                            analyzed_at=datetime.now()
-                        )
-                        db.add(analysis)
+                    # Get the saved listing
+                    listing = await listing_db.get_listing_by_url(listing_data['url'])
+                    if not listing:
+                        continue
                         
-                        # Update listing status
-                        if analysis_result['match_score'] >= settings.match_threshold:
-                            listing.status = 'match_found'
-                            matches_found += 1
-                        else:
-                            listing.status = 'analyzed'
-                            
-                        db.commit()
+                    # Create analysis result record
+                    analysis = AnalysisResult(
+                        listing_id=listing.id,
+                        search_profile_id=profile.id,
+                        match_score=analysis_result['match_score'],
+                        reasoning=analysis_result['reasoning'],
+                        confidence_level=analysis_result['confidence_level'],
+                        key_indicators=analysis_result.get('key_indicators', []),
+                        concerns=analysis_result.get('concerns', []),
+                        recommendation=analysis_result['recommendation'],
+                        model_used=self.matcher_agent.model_name,
+                        analyzed_at=datetime.now()
+                    )
+                    
+                    # Save analysis result
+                    await analysis_result_db.create_analysis_result(analysis.to_db_dict())
+                    
+                    # Update listing status
+                    if analysis_result['match_score'] >= settings.match_threshold:
+                        await listing_db.update_listing(listing.id, {'status': 'match_found'})
+                        matches_found += 1
+                    else:
+                        await listing_db.update_listing(listing.id, {'status': 'analyzed'})
                         
                     # Send notification if needed
                     if self.matcher_agent.should_notify(analysis_result):
                         try:
                             notification_results = await self.notification_service.send_match_alert(
-                                profile.to_dict(), listing_data, analysis_result
+                                profile.to_search_dict(), listing_data, analysis_result
                             )
                             
                             # Update notification status in database
                             if any(notification_results.values()):
-                                with get_session() as db:
-                                    analysis_record = db.query(AnalysisResult).filter(
-                                        AnalysisResult.listing_id == listing.id,
-                                        AnalysisResult.search_profile_id == profile.id
-                                    ).first()
-                                    if analysis_record:
-                                        analysis_record.notification_sent = True
-                                        analysis_record.notification_sent_at = datetime.now()
-                                        db.commit()
-                                        
+                                await analysis_result_db.mark_notification_sent(analysis.id)
                                 notifications_sent += 1
                                 logger.info(f"Notification sent for match: {listing_data['url']}")
                                 

@@ -15,11 +15,14 @@ class Settings(BaseSettings):
         extra="forbid"
     )
     
-    # Database settings
-    database_url: str = Field(
-        default="sqlite:///./recovrr.db",
-        description="Database connection URL"
+    # Supabase Database settings
+    supabase_url: str = Field(
+        description="Supabase project URL"
     )
+    supabase_key: str = Field(
+        description="Supabase anon/service role key"
+    )
+
     
     # AI/LLM settings
     openai_api_key: Optional[str] = Field(
@@ -78,6 +81,9 @@ class Settings(BaseSettings):
         default="INFO",
         description="Logging level"
     )
+
+
+
 
 
 # Global settings instance

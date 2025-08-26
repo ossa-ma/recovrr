@@ -13,8 +13,6 @@ aiohttp-retry==2.9.1
     # via twilio
 aiosignal==1.4.0
     # via aiohttp
-alembic==1.16.4
-    # via recovrr (pyproject.toml)
 annotated-types==0.7.0
     # via pydantic
 anthropic==0.64.0
@@ -56,6 +54,10 @@ click==8.2.1
     # via
     #   recovrr (pyproject.toml)
     #   uvicorn
+deprecation==2.1.0
+    # via
+    #   postgrest
+    #   storage3
 distro==1.9.0
     # via
     #   anthropic
@@ -73,6 +75,10 @@ h11==0.16.0
     #   httpcore
     #   uvicorn
     #   wsproto
+h2==4.3.0
+    # via httpx
+hpack==4.1.0
+    # via h2
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
@@ -80,8 +86,15 @@ httpx==0.28.1
     #   anthropic
     #   mcp
     #   openai
+    #   postgrest
+    #   storage3
+    #   supabase
+    #   supabase-auth
+    #   supabase-functions
 httpx-sse==0.4.1
     # via mcp
+hyperframe==6.1.0
+    # via h2
 idna==3.10
     # via
     #   anyio
@@ -97,12 +110,8 @@ jsonschema==4.25.1
     # via mcp
 jsonschema-specifications==2025.4.1
     # via jsonschema
-mako==1.3.10
-    # via alembic
 markupsafe==3.0.2
-    # via
-    #   mako
-    #   werkzeug
+    # via werkzeug
 mcp==1.13.1
     # via agents
 multidict==6.6.4
@@ -115,16 +124,18 @@ outcome==1.3.0.post0
     # via
     #   trio
     #   trio-websocket
+packaging==25.0
+    # via deprecation
 pillow==11.3.0
     # via recovrr (pyproject.toml)
 playwright==1.54.0
     # via recovrr (pyproject.toml)
+postgrest==1.1.1
+    # via supabase
 propcache==0.3.2
     # via
     #   aiohttp
     #   yarl
-psycopg2-binary==2.9.10
-    # via recovrr (pyproject.toml)
 pydantic==2.11.7
     # via
     #   recovrr (pyproject.toml)
@@ -132,7 +143,10 @@ pydantic==2.11.7
     #   anthropic
     #   mcp
     #   openai
+    #   postgrest
     #   pydantic-settings
+    #   realtime
+    #   supabase-auth
 pydantic-core==2.33.2
     # via pydantic
 pydantic-settings==2.10.1
@@ -142,11 +156,15 @@ pydantic-settings==2.10.1
 pyee==13.0.0
     # via playwright
 pyjwt==2.10.1
-    # via twilio
+    # via
+    #   supabase-auth
+    #   twilio
 pysocks==1.7.1
     # via urllib3
 python-dateutil==2.9.0.post0
-    # via recovrr (pyproject.toml)
+    # via
+    #   recovrr (pyproject.toml)
+    #   storage3
 python-dotenv==1.1.1
     # via
     #   recovrr (pyproject.toml)
@@ -156,6 +174,8 @@ python-http-client==3.3.7
     # via sendgrid
 python-multipart==0.0.20
     # via mcp
+realtime==2.7.0
+    # via supabase
 referencing==0.36.2
     # via
     #   jsonschema
@@ -186,14 +206,20 @@ sortedcontainers==2.4.0
     # via trio
 soupsieve==2.7
     # via beautifulsoup4
-sqlalchemy==2.0.43
-    # via
-    #   recovrr (pyproject.toml)
-    #   alembic
 sse-starlette==3.0.2
     # via mcp
 starlette==0.47.3
     # via mcp
+storage3==0.12.1
+    # via supabase
+strenum==0.4.15
+    # via supabase-functions
+supabase==2.18.1
+    # via recovrr (pyproject.toml)
+supabase-auth==2.12.3
+    # via supabase
+supabase-functions==0.10.1
+    # via supabase
 tqdm==4.67.1
     # via openai
 trio==0.30.0
@@ -206,15 +232,14 @@ twilio==9.7.1
     # via recovrr (pyproject.toml)
 typing-extensions==4.14.1
     # via
-    #   alembic
     #   anthropic
     #   beautifulsoup4
     #   openai
     #   pydantic
     #   pydantic-core
     #   pyee
+    #   realtime
     #   selenium
-    #   sqlalchemy
     #   typing-inspection
 typing-inspection==0.4.1
     # via
@@ -230,6 +255,8 @@ uvicorn==0.35.0
     # via mcp
 websocket-client==1.8.0
     # via selenium
+websockets==15.0.1
+    # via realtime
 werkzeug==3.1.3
     # via sendgrid
 wsproto==1.2.0

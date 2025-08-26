@@ -1,14 +1,27 @@
-"""Database models and utilities for Recovrr."""
+"""Database operations using Supabase direct client approach."""
 
-from .models import Base, SearchProfile, Listing, AnalysisResult
-from .database import get_engine, get_session, init_db
+from .supabase_db import (
+    supabase,
+    SearchProfileDB,
+    ListingDB, 
+    AnalysisResultDB,
+    DashboardDB
+)
+
+# Create database service instances
+search_profile_db = SearchProfileDB()
+listing_db = ListingDB()
+analysis_result_db = AnalysisResultDB()
+dashboard_db = DashboardDB()
 
 __all__ = [
-    "Base",
-    "SearchProfile", 
-    "Listing",
-    "AnalysisResult",
-    "get_engine",
-    "get_session", 
-    "init_db"
+    "supabase",
+    "search_profile_db",
+    "listing_db", 
+    "analysis_result_db",
+    "dashboard_db",
+    "SearchProfileDB",
+    "ListingDB",
+    "AnalysisResultDB", 
+    "DashboardDB"
 ]
