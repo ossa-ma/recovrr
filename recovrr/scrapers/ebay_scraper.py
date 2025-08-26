@@ -51,12 +51,12 @@ class EbayScraper(BaseScraper):
             
             # Make request
             url = f"{self.search_url}?{urlencode(params)}"
-            async with self.session.get(url) as response:
-                if response.status != 200:
-                    logger.error(f"eBay search failed with status {response.status}")
-                    return []
-                    
-                html = await response.text()
+            response = await self.session.get(url)
+            if response.status_code != 200:
+                logger.error(f"eBay search failed with status {response.status_code}")
+                return []
+                
+            html = response.text
                 
             # Parse results
             return self._parse_search_results(html)
@@ -167,11 +167,11 @@ class EbayScraper(BaseScraper):
         try:
             await self._rate_limit()
             
-            async with self.session.get(listing_url) as response:
-                if response.status != 200:
-                    return None
-                    
-                html = await response.text()
+            response = await self.session.get(listing_url)
+            if response.status_code != 200:
+                return None
+                
+            html = response.text
                 
             soup = BeautifulSoup(html, 'html.parser')
             

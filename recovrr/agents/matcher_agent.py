@@ -5,7 +5,7 @@ import logging
 from typing import Dict, Any, Optional
 
 from agents import BaseAgent
-from ..config import settings
+from recovrr.config.settings import settings
 
 logger = logging.getLogger(__name__)
 

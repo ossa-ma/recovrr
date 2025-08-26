@@ -3,7 +3,7 @@
 import logging
 from typing import Dict, Any, List, Optional
 
-from ..config import settings
+from recovrr.config.settings import settings
 from .base_notifier import BaseNotifier
 from .email_notifier import EmailNotifier
 from .sms_notifier import SMSNotifier

@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 import time
 
-import aiohttp
-from ..config import settings
+from curl_cffi import requests
+from recovrr.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class BaseScraper(ABC):
             marketplace_name: Name of the marketplace (e.g., 'ebay', 'facebook')
         """
         self.marketplace_name = marketplace_name
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: Optional[requests.AsyncSession] = None
         self.last_request_time = 0.0
         
     async def __aenter__(self):
@@ -35,21 +35,18 @@ class BaseScraper(ABC):
         await self.close_session()
         
     async def start_session(self):
-        """Start the HTTP session."""
+        """Start the HTTP session with browser impersonation."""
         if self.session is None:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-            timeout = aiohttp.ClientTimeout(total=30)
-            self.session = aiohttp.ClientSession(
-                headers=headers,
-                timeout=timeout
+            # Use curl-cffi with browser impersonation to bypass anti-bot measures
+            self.session = requests.AsyncSession(
+                impersonate="safari_ios",  # Impersonate Safari on iOS to avoid 429s
+                timeout=30
             )
             
     async def close_session(self):
         """Close the HTTP session."""
         if self.session:
-            await self.session.close()
+            self.session.close()  # curl-cffi doesn't use await for close
             self.session = None
             
     async def _rate_limit(self):

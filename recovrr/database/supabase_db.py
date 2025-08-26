@@ -10,8 +10,10 @@ import postgrest
 from supabase import AsyncClient
 from supabase._async.client import AsyncClient as Client, create_client
 
-from ..config import settings
-from ..models import SearchProfile, Listing, AnalysisResult
+from recovrr.config.settings import settings
+from recovrr.models.search_profile import SearchProfile
+from recovrr.models.listing import Listing
+from recovrr.models.analysis_result import AnalysisResult
 
 log = logging.getLogger(__name__)
 

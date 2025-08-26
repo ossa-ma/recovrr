@@ -6,7 +6,7 @@ from typing import Dict, Any
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-from ..config import settings
+from recovrr.config.settings import settings
 from .base_notifier import BaseNotifier
 
 logger = logging.getLogger(__name__)

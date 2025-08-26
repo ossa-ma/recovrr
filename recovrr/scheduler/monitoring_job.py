@@ -5,12 +5,14 @@ import logging
 from typing import List, Dict, Any
 from datetime import datetime
 
-from ..config import settings
-from ..database import search_profile_db, listing_db, analysis_result_db
-from ..models import SearchProfile, Listing, AnalysisResult
-from ..scrapers import ScraperFactory
-from ..agents import MatcherAgent
-from ..notifications import NotificationService
+from recovrr.config.settings import settings
+from recovrr.database.supabase_db import search_profile_db, listing_db, analysis_result_db
+from recovrr.models.search_profile import SearchProfile
+from recovrr.models.listing import Listing
+from recovrr.models.analysis_result import AnalysisResult
+from recovrr.scrapers.scraper_factory import ScraperFactory
+from recovrr.agents.matcher_agent import MatcherAgent
+from recovrr.notifications.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 

@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 from twilio.rest import Client
 
-from ..config import settings
+from recovrr.config.settings import settings
 from .base_notifier import BaseNotifier
 
 logger = logging.getLogger(__name__)

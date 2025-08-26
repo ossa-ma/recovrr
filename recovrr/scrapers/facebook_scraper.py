@@ -1,10 +1,13 @@
-"""Facebook Marketplace scraper using browser automation."""
+"""Facebook Marketplace scraper using curl-cffi for stealth."""
 
 import logging
 from typing import List, Dict, Any, Optional
 import asyncio
+import json
+import re
+from urllib.parse import urlencode
 
-from playwright.async_api import async_playwright, Page, Browser
+from bs4 import BeautifulSoup
 
 from .base_scraper import BaseScraper
 
@@ -12,63 +15,26 @@ logger = logging.getLogger(__name__)
 
 
 class FacebookScraper(BaseScraper):
-    """Scraper for Facebook Marketplace using browser automation."""
+    """Scraper for Facebook Marketplace using curl-cffi with browser impersonation."""
     
     def __init__(self):
         """Initialize Facebook Marketplace scraper."""
         super().__init__("facebook")
-        self.browser: Optional[Browser] = None
-        self.page: Optional[Page] = None
-        
+        self.base_url = "https://www.facebook.com"
+    
     async def start_session(self):
-        """Start browser session."""
-        try:
-            self.playwright = await async_playwright().start()
-            
-            # Launch browser in headless mode
-            self.browser = await self.playwright.chromium.launch(
-                headless=True,
-                args=[
-                    '--no-sandbox',
-                    '--disable-blink-features=AutomationControlled',
-                    '--disable-dev-shm-usage',
-                ]
-            )
-            
-            # Create page with realistic viewport
-            self.page = await self.browser.new_page(
-                viewport={'width': 1920, 'height': 1080}
-            )
-            
-            # Set user agent
-            await self.page.set_extra_http_headers({
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            })
-            
-            logger.info("Facebook scraper browser session started")
-            
-        except Exception as e:
-            logger.error(f"Failed to start Facebook scraper session: {e}")
-            raise
-            
-    async def close_session(self):
-        """Close browser session."""
-        try:
-            if self.page:
-                await self.page.close()
-                self.page = None
-                
-            if self.browser:
-                await self.browser.close()
-                self.browser = None
-                
-            if hasattr(self, 'playwright'):
-                await self.playwright.stop()
-                
-            logger.info("Facebook scraper browser session closed")
-            
-        except Exception as e:
-            logger.error(f"Error closing Facebook scraper session: {e}")
+        """Start HTTP session with enhanced browser impersonation."""
+        await super().start_session()
+        
+        # Additional headers to mimic real browser behavior
+        self.session.headers.update({
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        })
             
     async def search(self, search_terms: str, location: Optional[str] = None) -> List[Dict[str, Any]]:
         """Search Facebook Marketplace for items.
@@ -81,79 +47,60 @@ class FacebookScraper(BaseScraper):
             List of listing dictionaries
         """
         try:
-            if not self.page:
-                raise RuntimeError("Browser session not started")
+            # Rate limit
+            await self._rate_limit()
+            
+            # Build search URL - Facebook Marketplace search
+            params = {
+                'query': search_terms,
+                'sortBy': 'creation_time_descend',  # Newest first
+                'exact': 'false'
+            }
+            
+            if location:
+                # Facebook uses different location parameters, this is a simplified approach
+                params['location'] = location
+            
+            search_url = f"{self.base_url}/marketplace/search/?{urlencode(params)}"
+            
+            # Make request
+            response = await self.session.get(search_url)
+            if response.status_code != 200:
+                logger.error(f"Facebook search failed with status {response.status_code}")
+                return []
                 
-            # Navigate to Facebook Marketplace
-            marketplace_url = "https://www.facebook.com/marketplace"
-            await self.page.goto(marketplace_url, wait_until="networkidle")
-            
-            # Wait for page to load
-            await asyncio.sleep(2)
-            
-            # Handle potential login/cookie banners
-            await self._handle_popups()
-            
-            # Perform search
-            search_box = await self.page.wait_for_selector('input[placeholder*="Search Marketplace"]', timeout=10000)
-            await search_box.fill(search_terms)
-            await search_box.press("Enter")
-            
-            # Wait for results to load
-            await self.page.wait_for_load_state("networkidle")
-            await asyncio.sleep(3)
+            html = response.text
             
             # Parse results
-            listings = await self._parse_search_results()
-            
-            logger.info(f"Found {len(listings)} listings on Facebook Marketplace")
-            return listings
+            return self._parse_search_results(html)
             
         except Exception as e:
             logger.error(f"Error searching Facebook Marketplace: {e}")
             return []
             
-    async def _handle_popups(self):
-        """Handle login prompts and cookie banners."""
-        try:
-            # Try to close any popups/modals
-            close_buttons = [
-                'button[aria-label="Close"]',
-                'div[role="button"]:has-text("Not Now")',
-                'div[role="button"]:has-text("Cancel")',
-                'button:has-text("Close")'
-            ]
-            
-            for selector in close_buttons:
-                try:
-                    button = await self.page.wait_for_selector(selector, timeout=2000)
-                    if button:
-                        await button.click()
-                        await asyncio.sleep(1)
-                except:
-                    continue
-                    
-        except Exception as e:
-            logger.debug(f"No popups to handle: {e}")
-            
-    async def _parse_search_results(self) -> List[Dict[str, Any]]:
+    def _parse_search_results(self, html: str) -> List[Dict[str, Any]]:
         """Parse Facebook Marketplace search results.
         
+        Args:
+            html: HTML content of search results page
+            
         Returns:
             List of parsed listings
         """
+        soup = BeautifulSoup(html, 'html.parser')
         listings = []
         
         try:
-            # Wait for listing containers to load
-            await self.page.wait_for_selector('[data-testid="marketplace-item"]', timeout=10000)
+            # Facebook's marketplace uses dynamic class names, so we look for patterns
+            # This is a simplified approach - Facebook's actual structure is complex
             
-            # Get all listing elements
-            listing_elements = await self.page.query_selector_all('[data-testid="marketplace-item"]')
+            # Look for marketplace item containers (these selectors may need adjustment)
+            listing_elements = soup.find_all('div', {'data-testid': 'marketplace-item'}) or \
+                             soup.find_all('a', href=re.compile(r'/marketplace/item/\d+'))
             
             for element in listing_elements:
                 try:
-                    listing = await self._parse_listing(element)
+                    listing = self._parse_listing(element)
                     if listing:
                         listings.append(listing)
                 except Exception as e:
@@ -165,52 +112,58 @@ class FacebookScraper(BaseScraper):
             
         return listings
         
-    async def _parse_listing(self, listing_element) -> Optional[Dict[str, Any]]:
+    def _parse_listing(self, listing_element) -> Optional[Dict[str, Any]]:
         """Parse a single Facebook Marketplace listing.
         
         Args:
-            listing_element: Playwright element containing listing
+            listing_element: BeautifulSoup element containing listing
             
         Returns:
             Parsed listing dictionary or None
         """
         try:
-            # Extract title
-            title_elem = await listing_element.query_selector('span[dir="auto"]')
-            if not title_elem:
-                return None
-            title = await title_elem.inner_text()
-            title = self._clean_text(title)
-            
-            # Extract URL
-            link_elem = await listing_element.query_selector('a[href*="/marketplace/item/"]')
+            # Extract URL first
+            link_elem = listing_element.find('a', href=re.compile(r'/marketplace/item/\d+'))
             if not link_elem:
                 return None
-            relative_url = await link_elem.get_attribute('href')
+            relative_url = link_elem.get('href')
             url = f"https://www.facebook.com{relative_url}" if relative_url.startswith('/') else relative_url
             
-            # Extract price
-            price_elem = await listing_element.query_selector('span:has-text("$")')
+            # Extract title
+            title_elem = listing_element.find('span', dir="auto") or \
+                        listing_element.find('div', string=True)
+            if not title_elem:
+                return None
+            title = self._clean_text(title_elem.get_text() if hasattr(title_elem, 'get_text') else str(title_elem))
+            
+            # Extract price (look for currency symbols)
             price = None
-            if price_elem:
-                price_text = await price_elem.inner_text()
-                price = self._clean_price(price_text)
-                
-            # Extract location
-            location_elem = await listing_element.query_selector('span[dir="auto"]:not(:has(span))')
+            price_patterns = [
+                r'\$[\d,]+(?:\.\d{2})?',  # $100 or $1,000.00
+                r'£[\d,]+(?:\.\d{2})?',  # £100
+                r'€[\d,]+(?:\.\d{2})?'   # €100
+            ]
+            
+            text_content = listing_element.get_text()
+            for pattern in price_patterns:
+                price_match = re.search(pattern, text_content)
+                if price_match:
+                    price = self._clean_price(price_match.group())
+                    break
+                    
+            # Extract location (simplified - Facebook location parsing is complex)
             location = None
-            if location_elem:
-                location_text = await location_elem.inner_text()
-                if any(keyword in location_text.lower() for keyword in ['mile', 'km', 'away']):
-                    location = self._clean_text(location_text)
+            location_keywords = ['mile', 'km', 'away', 'from']
+            for text_elem in listing_element.find_all(string=True):
+                if any(keyword in text_elem.lower() for keyword in location_keywords):
+                    location = self._clean_text(text_elem)
+                    break
                     
             # Extract image URL
-            img_elem = await listing_element.query_selector('img')
             image_urls = []
-            if img_elem:
-                img_src = await img_elem.get_attribute('src')
-                if img_src:
-                    image_urls = [img_src]
+            img_elem = listing_element.find('img')
+            if img_elem and img_elem.get('src'):
+                image_urls = [img_elem['src']]
                     
             # Build listing dictionary
             listing = {
@@ -239,36 +192,35 @@ class FacebookScraper(BaseScraper):
             Detailed listing information or None
         """
         try:
-            if not self.page:
+            await self._rate_limit()
+            
+            response = await self.session.get(listing_url)
+            if response.status_code != 200:
                 return None
                 
-            await self.page.goto(listing_url, wait_until="networkidle")
-            await asyncio.sleep(2)
+            html = response.text
+            soup = BeautifulSoup(html, 'html.parser')
             
-            # Extract detailed description
+            # Extract detailed description (Facebook structure varies)
+            description = ""
             description_selectors = [
-                '[data-testid="marketplace-pdp-description"] span',
-                'div[dir="auto"]:has-text("Description")',
+                '[data-testid="marketplace-pdp-description"]',
+                'div[dir="auto"]',
                 'span[dir="auto"]'
             ]
             
-            description = ""
             for selector in description_selectors:
-                try:
-                    desc_elem = await self.page.wait_for_selector(selector, timeout=3000)
-                    if desc_elem:
-                        description = await desc_elem.inner_text()
-                        description = self._clean_text(description)
-                        break
-                except:
-                    continue
+                desc_elem = soup.select_one(selector)
+                if desc_elem and desc_elem.get_text().strip():
+                    description = self._clean_text(desc_elem.get_text())
+                    break
                     
             # Extract additional images
             image_urls = []
-            img_elements = await self.page.query_selector_all('img[data-imgperflogname]')
+            img_elements = soup.find_all('img')
             for img in img_elements:
-                img_src = await img.get_attribute('src')
-                if img_src and 'scontent' in img_src:  # Facebook CDN images
+                img_src = img.get('src')
+                if img_src and ('scontent' in img_src or 'fbcdn' in img_src):  # Facebook CDN images
                     image_urls.append(img_src)
                     
             return {

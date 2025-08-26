@@ -9,7 +9,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
 
-from ..config import settings
+from recovrr.config.settings import settings
 from .monitoring_job import MonitoringJob
 
 logger = logging.getLogger(__name__)

@@ -33,9 +33,7 @@ attrs==25.3.0
     # via
     #   aiohttp
     #   jsonschema
-    #   outcome
     #   referencing
-    #   trio
 beautifulsoup4==4.13.5
     # via
     #   recovrr (pyproject.toml)
@@ -44,16 +42,20 @@ bs4==0.0.2
     # via agents
 certifi==2025.8.3
     # via
+    #   curl-cffi
     #   httpcore
     #   httpx
     #   requests
-    #   selenium
+cffi==1.17.1
+    # via curl-cffi
 charset-normalizer==3.4.3
     # via requests
 click==8.2.1
     # via
     #   recovrr (pyproject.toml)
     #   uvicorn
+curl-cffi==0.13.0
+    # via recovrr (pyproject.toml)
 deprecation==2.1.0
     # via
     #   postgrest
@@ -68,13 +70,10 @@ frozenlist==1.7.0
     # via
     #   aiohttp
     #   aiosignal
-greenlet==3.2.4
-    # via playwright
 h11==0.16.0
     # via
     #   httpcore
     #   uvicorn
-    #   wsproto
 h2==4.3.0
     # via httpx
 hpack==4.1.0
@@ -100,7 +99,6 @@ idna==3.10
     #   anyio
     #   httpx
     #   requests
-    #   trio
     #   yarl
 jiter==0.10.0
     # via
@@ -120,15 +118,9 @@ multidict==6.6.4
     #   yarl
 openai==1.101.0
     # via recovrr (pyproject.toml)
-outcome==1.3.0.post0
-    # via
-    #   trio
-    #   trio-websocket
 packaging==25.0
     # via deprecation
 pillow==11.3.0
-    # via recovrr (pyproject.toml)
-playwright==1.54.0
     # via recovrr (pyproject.toml)
 postgrest==1.1.1
     # via supabase
@@ -136,6 +128,8 @@ propcache==0.3.2
     # via
     #   aiohttp
     #   yarl
+pycparser==2.22
+    # via cffi
 pydantic==2.11.7
     # via
     #   recovrr (pyproject.toml)
@@ -153,14 +147,10 @@ pydantic-settings==2.10.1
     # via
     #   recovrr (pyproject.toml)
     #   mcp
-pyee==13.0.0
-    # via playwright
 pyjwt==2.10.1
     # via
     #   supabase-auth
     #   twilio
-pysocks==1.7.1
-    # via urllib3
 python-dateutil==2.9.0.post0
     # via
     #   recovrr (pyproject.toml)
@@ -181,15 +171,11 @@ referencing==0.36.2
     #   jsonschema
     #   jsonschema-specifications
 requests==2.32.5
-    # via
-    #   recovrr (pyproject.toml)
-    #   twilio
+    # via twilio
 rpds-py==0.27.0
     # via
     #   jsonschema
     #   referencing
-selenium==4.35.0
-    # via recovrr (pyproject.toml)
 sendgrid==6.12.4
     # via recovrr (pyproject.toml)
 six==1.17.0
@@ -201,9 +187,6 @@ sniffio==1.3.1
     #   anthropic
     #   anyio
     #   openai
-    #   trio
-sortedcontainers==2.4.0
-    # via trio
 soupsieve==2.7
     # via beautifulsoup4
 sse-starlette==3.0.2
@@ -222,12 +205,6 @@ supabase-functions==0.10.1
     # via supabase
 tqdm==4.67.1
     # via openai
-trio==0.30.0
-    # via
-    #   selenium
-    #   trio-websocket
-trio-websocket==0.12.2
-    # via selenium
 twilio==9.7.1
     # via recovrr (pyproject.toml)
 typing-extensions==4.14.1
@@ -237,9 +214,7 @@ typing-extensions==4.14.1
     #   openai
     #   pydantic
     #   pydantic-core
-    #   pyee
     #   realtime
-    #   selenium
     #   typing-inspection
 typing-inspection==0.4.1
     # via
@@ -248,18 +223,12 @@ typing-inspection==0.4.1
 tzlocal==5.3.1
     # via apscheduler
 urllib3==2.5.0
-    # via
-    #   requests
-    #   selenium
+    # via requests
 uvicorn==0.35.0
     # via mcp
-websocket-client==1.8.0
-    # via selenium
 websockets==15.0.1
     # via realtime
 werkzeug==3.1.3
     # via sendgrid
-wsproto==1.2.0
-    # via trio-websocket
 yarl==1.20.1
     # via aiohttp

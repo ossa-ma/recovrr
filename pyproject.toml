@@ -13,11 +13,9 @@ dependencies = [
     # Database
     "supabase",
     
-    # Web scraping and automation
-    "requests",
+    # Web scraping
+    "curl-cffi",
     "beautifulsoup4",
-    "playwright",
-    "selenium",
     
     # AI/LLM integration
     "openai",
