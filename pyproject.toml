@@ -1,0 +1,63 @@
+[project]
+name = "recovrr"
+version = "0.1.0"
+description = "Scalable marketplace monitoring system for tracking stolen items using AI analysis"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    # Core framework
+    "pydantic",
+    "pydantic-settings",
+    "python-dotenv",
+    
+    # Database
+    "sqlalchemy",
+    "alembic",
+    "psycopg2-binary",
+    
+    # Web scraping and automation
+    "requests",
+    "beautifulsoup4",
+    "playwright",
+    "selenium",
+    
+    # AI/LLM integration
+    "openai",
+    "anthropic",
+    
+    # Scheduling
+    "apscheduler",
+    
+    # Notifications
+    "sendgrid",
+    "twilio",
+    
+    # Utilities
+    "click",
+    "python-dateutil",
+    "pillow",
+    
+    # Custom agents library
+    "agents @ git+ssh://git@github.com/ossa-ma/agents.git",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "flake8",
+    "mypy",
+]
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
