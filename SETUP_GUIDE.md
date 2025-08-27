@@ -75,27 +75,27 @@ SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your_service_role_key_here
 ```
 
-## 🤖 4. AI API Keys Setup
+## 🤖 4. AI Setup
+
+The agents framework needs API keys to function. Add them to your `.env`:
 
 ### OpenAI (Recommended)
 1. Go to [platform.openai.com](https://platform.openai.com)
-2. Create account or sign in
-3. Go to API Keys section
-4. Click "Create new secret key"
-5. Copy the key and add to `.env`:
+2. Create account → API Keys → "Create new secret key"
+3. Add to `.env`:
 ```bash
 OPENAI_API_KEY=sk-your-openai-key-here
 ```
 
 ### Anthropic (Alternative)
-1. Go to [console.anthropic.com](https://console.anthropic.com)
-2. Create account or sign in
-3. Go to API Keys
-4. Generate new key
-5. Add to `.env`:
+1. Go to [console.anthropic.com](https://console.anthropic.com)  
+2. Create account → API Keys → Generate key
+3. Add to `.env`:
 ```bash
 ANTHROPIC_API_KEY=your-anthropic-key-here
 ```
+
+The agents framework will automatically pick up these environment variables.
 
 ## 📧 5. Notification Services Setup
 

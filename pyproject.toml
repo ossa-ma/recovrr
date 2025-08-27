@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     # Core framework
-    "pydantic",
+    "pydantic[email]",
     "pydantic-settings",
     "python-dotenv",
     
@@ -16,11 +16,7 @@ dependencies = [
     # Web scraping
     "curl-cffi",
     "beautifulsoup4",
-    
-    # AI/LLM integration
-    "openai",
-    "anthropic",
-    
+        
     # Scheduling
     "apscheduler",
     

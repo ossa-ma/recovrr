@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS search_profiles (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     
-    -- Item details
+    -- Item details (all flexible TEXT fields)
     make TEXT,
     model TEXT,
     color TEXT,
@@ -13,9 +13,12 @@ CREATE TABLE IF NOT EXISTS search_profiles (
     
     -- Search parameters
     location TEXT,
-    price_min DECIMAL(10,2),
-    price_max DECIMAL(10,2),
+    price_min DECIMAL(12,2),  -- Increased precision for expensive items
+    price_max DECIMAL(12,2),
     search_terms JSONB DEFAULT '[]',
+    
+    -- Additional flexible metadata
+    metadata JSONB DEFAULT '{}',  -- For future extensions
     
     -- Contact information
     owner_email TEXT NOT NULL,
@@ -35,7 +38,7 @@ CREATE TABLE IF NOT EXISTS listings (
     -- Listing details
     title TEXT NOT NULL,
     description TEXT,
-    price DECIMAL(10,2),
+    price DECIMAL(12,2),  -- Increased precision
     location TEXT,
     image_urls JSONB DEFAULT '[]',
     
@@ -43,8 +46,11 @@ CREATE TABLE IF NOT EXISTS listings (
     marketplace TEXT NOT NULL,
     external_id TEXT,
     
-    -- Status tracking
-    status TEXT DEFAULT 'new' NOT NULL CHECK (status IN ('new', 'analyzed', 'match_found', 'ignored')),
+    -- Flexible status (removed CHECK constraint for future extensibility)
+    status TEXT DEFAULT 'new' NOT NULL,
+    
+    -- Additional flexible metadata  
+    metadata JSONB DEFAULT '{}',  -- For future marketplace-specific data
     
     -- Timestamps
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -59,13 +65,16 @@ CREATE TABLE IF NOT EXISTS analysis_results (
     listing_id BIGINT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
     search_profile_id BIGINT NOT NULL REFERENCES search_profiles(id) ON DELETE CASCADE,
     
-    -- Analysis results
-    match_score DECIMAL(3,1) NOT NULL CHECK (match_score >= 0 AND match_score <= 10),
+    -- Analysis results (more flexible)
+    match_score DECIMAL(5,2) NOT NULL CHECK (match_score >= 0 AND match_score <= 100),  -- 0-100 scale for future
     reasoning TEXT,
-    confidence_level TEXT NOT NULL CHECK (confidence_level IN ('low', 'medium', 'high')),
+    confidence_level TEXT NOT NULL,  -- Removed CHECK for flexibility
     key_indicators JSONB DEFAULT '[]',
     concerns JSONB DEFAULT '[]',
-    recommendation TEXT NOT NULL CHECK (recommendation IN ('investigate', 'ignore', 'high_priority')),
+    recommendation TEXT NOT NULL,  -- Removed CHECK for flexibility
+    
+    -- Additional analysis data
+    analysis_data JSONB DEFAULT '{}',  -- For future ML features, confidence scores, etc.
     
     -- AI model info
     model_used TEXT,
@@ -84,16 +93,19 @@ CREATE TABLE IF NOT EXISTS analysis_results (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_search_profiles_active ON search_profiles(active);
 CREATE INDEX IF NOT EXISTS idx_search_profiles_owner_email ON search_profiles(owner_email);
+CREATE INDEX IF NOT EXISTS idx_search_profiles_metadata ON search_profiles USING gin(metadata);
 
 CREATE INDEX IF NOT EXISTS idx_listings_url ON listings(url);
 CREATE INDEX IF NOT EXISTS idx_listings_marketplace ON listings(marketplace);
 CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
 CREATE INDEX IF NOT EXISTS idx_listings_created_at ON listings(created_at);
+CREATE INDEX IF NOT EXISTS idx_listings_metadata ON listings USING gin(metadata);
 
 CREATE INDEX IF NOT EXISTS idx_analysis_results_listing_id ON analysis_results(listing_id);
 CREATE INDEX IF NOT EXISTS idx_analysis_results_search_profile_id ON analysis_results(search_profile_id);
 CREATE INDEX IF NOT EXISTS idx_analysis_results_match_score ON analysis_results(match_score);
 CREATE INDEX IF NOT EXISTS idx_analysis_results_notification_sent ON analysis_results(notification_sent);
+CREATE INDEX IF NOT EXISTS idx_analysis_results_analysis_data ON analysis_results USING gin(analysis_data);
 
 -- Create full-text search index for listings
 CREATE INDEX IF NOT EXISTS idx_listings_title_fts ON listings USING gin(to_tsvector('english', title));

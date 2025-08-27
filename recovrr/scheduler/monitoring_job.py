@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 from datetime import datetime
 
 from recovrr.config.settings import settings
-from recovrr.database.supabase_db import search_profile_db, listing_db, analysis_result_db
+from recovrr.database.supabase import search_profile_db, listing_db, analysis_result_db
 from recovrr.models.search_profile import SearchProfile
 from recovrr.models.listing import Listing
 from recovrr.models.analysis_result import AnalysisResult

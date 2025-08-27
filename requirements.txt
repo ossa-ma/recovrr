@@ -16,15 +16,12 @@ aiosignal==1.4.0
 annotated-types==0.7.0
     # via pydantic
 anthropic==0.64.0
-    # via
-    #   recovrr (pyproject.toml)
-    #   agents
+    # via agents
 anyio==4.10.0
     # via
     #   anthropic
     #   httpx
     #   mcp
-    #   openai
     #   sse-starlette
     #   starlette
 apscheduler==3.11.0
@@ -61,11 +58,13 @@ deprecation==2.1.0
     #   postgrest
     #   storage3
 distro==1.9.0
-    # via
-    #   anthropic
-    #   openai
+    # via anthropic
+dnspython==2.7.0
+    # via email-validator
 ecdsa==0.19.1
     # via sendgrid
+email-validator==2.3.0
+    # via pydantic
 frozenlist==1.7.0
     # via
     #   aiohttp
@@ -84,7 +83,6 @@ httpx==0.28.1
     # via
     #   anthropic
     #   mcp
-    #   openai
     #   postgrest
     #   storage3
     #   supabase
@@ -97,13 +95,12 @@ hyperframe==6.1.0
 idna==3.10
     # via
     #   anyio
+    #   email-validator
     #   httpx
     #   requests
     #   yarl
 jiter==0.10.0
-    # via
-    #   anthropic
-    #   openai
+    # via anthropic
 jsonschema==4.25.1
     # via mcp
 jsonschema-specifications==2025.4.1
@@ -116,8 +113,6 @@ multidict==6.6.4
     # via
     #   aiohttp
     #   yarl
-openai==1.101.0
-    # via recovrr (pyproject.toml)
 packaging==25.0
     # via deprecation
 pillow==11.3.0
@@ -136,7 +131,6 @@ pydantic==2.11.7
     #   agents
     #   anthropic
     #   mcp
-    #   openai
     #   postgrest
     #   pydantic-settings
     #   realtime
@@ -186,7 +180,6 @@ sniffio==1.3.1
     # via
     #   anthropic
     #   anyio
-    #   openai
 soupsieve==2.7
     # via beautifulsoup4
 sse-starlette==3.0.2
@@ -203,15 +196,12 @@ supabase-auth==2.12.3
     # via supabase
 supabase-functions==0.10.1
     # via supabase
-tqdm==4.67.1
-    # via openai
 twilio==9.7.1
     # via recovrr (pyproject.toml)
 typing-extensions==4.14.1
     # via
     #   anthropic
     #   beautifulsoup4
-    #   openai
     #   pydantic
     #   pydantic-core
     #   realtime

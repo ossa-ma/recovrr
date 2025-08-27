@@ -3,7 +3,6 @@
 import asyncio
 import contextlib
 import logging
-import os
 from typing import List, Optional, Dict, Any
 
 import postgrest
@@ -300,3 +299,10 @@ class DashboardDB:
             stats["recent_listings"] = len(request.data) if request.data else 0
         
         return stats
+
+
+# Create database service instances
+search_profile_db = SearchProfileDB()
+listing_db = ListingDB()
+analysis_result_db = AnalysisResultDB()
+dashboard_db = DashboardDB()

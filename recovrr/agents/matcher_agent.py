@@ -2,9 +2,9 @@
 
 import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
-from agents import BaseAgent
+from agents.base.agent import BaseAgent
 from recovrr.config.settings import settings
 
 logger = logging.getLogger(__name__)
