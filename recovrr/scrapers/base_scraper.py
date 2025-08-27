@@ -1,9 +1,7 @@
-"""Base scraper class for marketplace scrapers."""
-
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
+from typing import Any
 import time
 
 from curl_cffi import requests
@@ -22,7 +20,7 @@ class BaseScraper(ABC):
             marketplace_name: Name of the marketplace (e.g., 'ebay', 'facebook')
         """
         self.marketplace_name = marketplace_name
-        self.session: Optional[requests.AsyncSession] = None
+        self.session: requests.AsyncSession | None = None
         self.last_request_time = 0.0
         
     async def __aenter__(self):
@@ -60,7 +58,7 @@ class BaseScraper(ABC):
         self.last_request_time = time.time()
         
     @abstractmethod
-    async def search(self, search_terms: str, location: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def search(self, search_terms: str, location: str | None = None) -> list[dict[str, Any]]:
         """Search for items on the marketplace.
         
         Args:
@@ -73,7 +71,7 @@ class BaseScraper(ABC):
         pass
         
     @abstractmethod
-    def _parse_listing(self, listing_element: Any) -> Optional[Dict[str, Any]]:
+    def _parse_listing(self, listing_element: Any) -> dict[str, Any] | None:
         """Parse a single listing from the marketplace.
         
         Args:
@@ -84,7 +82,7 @@ class BaseScraper(ABC):
         """
         pass
         
-    def _clean_price(self, price_text: str) -> Optional[float]:
+    def _clean_price(self, price_text: str) -> float | None:
         """Extract numeric price from price text.
         
         Args:
@@ -125,7 +123,7 @@ class BaseScraper(ABC):
         # Remove extra whitespace and normalize
         return ' '.join(text.strip().split())
         
-    async def scrape_search_profile(self, search_profile: Dict[str, Any]) -> List[Dict[str, Any]]:
+    async def scrape_search_profile(self, search_profile: dict[str, Any]) -> list[dict[str, Any]]:
         """Scrape listings for a specific search profile.
         
         Args:
@@ -157,7 +155,7 @@ class BaseScraper(ABC):
             logger.error(f"Error scraping {self.marketplace_name}: {e}")
             return []
             
-    def _build_search_terms(self, search_profile: Dict[str, Any]) -> str:
+    def _build_search_terms(self, search_profile: dict[str, Any]) -> str:
         """Build search query from search profile.
         
         Args:

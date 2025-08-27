@@ -20,7 +20,7 @@ class EbayScraper(BaseScraper):
         self.base_url = "https://www.ebay.com"
         self.search_url = f"{self.base_url}/sch/i.html"
         
-    async def search(self, search_terms: str, location: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def search(self, search_terms: str, location: Optional[str] = None) -> List[dict[str, Any]]:
         """Search eBay for items.
         
         Args:
@@ -65,7 +65,7 @@ class EbayScraper(BaseScraper):
             logger.error(f"Error searching eBay: {e}")
             return []
             
-    def _parse_search_results(self, html: str) -> List[Dict[str, Any]]:
+    def _parse_search_results(self, html: str) -> List[dict[str, Any]]:
         """Parse eBay search results page.
         
         Args:
@@ -91,7 +91,7 @@ class EbayScraper(BaseScraper):
                 
         return listings
         
-    def _parse_listing(self, listing_element) -> Optional[Dict[str, Any]]:
+    def _parse_listing(self, listing_element) -> Optional[dict[str, Any]]:
         """Parse a single eBay listing.
         
         Args:
@@ -155,7 +155,7 @@ class EbayScraper(BaseScraper):
             logger.warning(f"Error parsing eBay listing element: {e}")
             return None
             
-    async def get_listing_details(self, listing_url: str) -> Optional[Dict[str, Any]]:
+    async def get_listing_details(self, listing_url: str) -> Optional[dict[str, Any]]:
         """Get detailed information for a specific listing.
         
         Args:

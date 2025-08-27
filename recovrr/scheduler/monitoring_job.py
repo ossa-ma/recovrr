@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import List, Dict, Any
+from typing import Any
 from datetime import datetime
 
 from recovrr.config.settings import settings
@@ -25,7 +25,7 @@ class MonitoringJob:
         self.notification_service = NotificationService()
         self.matcher_agent = MatcherAgent()
         
-    async def run_monitoring_cycle(self) -> Dict[str, Any]:
+    async def run_monitoring_cycle(self) -> dict[str, Any]:
         """Run a complete monitoring cycle.
         
         Returns:
@@ -82,7 +82,7 @@ class MonitoringJob:
                 'duration_seconds': (datetime.now() - start_time).total_seconds()
             }
             
-    async def _scrape_all_profiles(self, search_profiles: List[SearchProfile]) -> List[Dict[str, Any]]:
+    async def _scrape_all_profiles(self, search_profiles: list[SearchProfile]) -> list[dict[str, Any]]:
         """Scrape all marketplaces for all search profiles.
         
         Args:
@@ -146,7 +146,7 @@ class MonitoringJob:
             
         return all_new_listings
         
-    async def _save_new_listings(self, listings: List[Dict[str, Any]]):
+    async def _save_new_listings(self, listings: list[dict[str, Any]]):
         """Save new listings to the database.
         
         Args:
@@ -176,8 +176,8 @@ class MonitoringJob:
             
     async def _analyze_listings(
         self, 
-        new_listings: List[Dict[str, Any]], 
-        search_profiles: List[SearchProfile]
+        new_listings: list[dict[str, Any]], 
+        search_profiles: list[SearchProfile]
     ) -> tuple[int, int]:
         """Analyze new listings against search profiles.
         

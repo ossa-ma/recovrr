@@ -28,9 +28,9 @@ class EmailNotifier(BaseNotifier):
     async def send_match_notification(
         self,
         recipient: str,
-        search_profile: Dict[str, Any],
-        listing: Dict[str, Any],
-        analysis_result: Dict[str, Any]
+        search_profile: dict[str, Any],
+        listing: dict[str, Any],
+        analysis_result: dict[str, Any]
     ) -> bool:
         """Send email notification about a potential match.
         
@@ -118,9 +118,9 @@ class EmailNotifier(BaseNotifier):
             
     def _create_html_body(
         self,
-        search_profile: Dict[str, Any],
-        listing: Dict[str, Any],
-        analysis_result: Dict[str, Any],
+        search_profile: dict[str, Any],
+        listing: dict[str, Any],
+        analysis_result: dict[str, Any],
         plain_text: str
     ) -> str:
         """Create HTML version of the email body.

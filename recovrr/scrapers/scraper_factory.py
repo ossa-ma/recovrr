@@ -40,7 +40,7 @@ class ScraperFactory:
         return scraper_class()
         
     @classmethod
-    def get_available_marketplaces(cls) -> List[str]:
+    def get_available_marketplaces(cls) -> list[str]:
         """Get list of available marketplace names.
         
         Returns:

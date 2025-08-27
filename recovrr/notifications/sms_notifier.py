@@ -27,9 +27,9 @@ class SMSNotifier(BaseNotifier):
     async def send_match_notification(
         self,
         recipient: str,
-        search_profile: Dict[str, Any],
-        listing: Dict[str, Any],
-        analysis_result: Dict[str, Any]
+        search_profile: dict[str, Any],
+        listing: dict[str, Any],
+        analysis_result: dict[str, Any]
     ) -> bool:
         """Send SMS notification about a potential match.
         
@@ -108,9 +108,9 @@ class SMSNotifier(BaseNotifier):
             
     def _create_sms_message(
         self,
-        search_profile: Dict[str, Any],
-        listing: Dict[str, Any],
-        analysis_result: Dict[str, Any]
+        search_profile: dict[str, Any],
+        listing: dict[str, Any],
+        analysis_result: dict[str, Any]
     ) -> str:
         """Create SMS message for match notification.
         

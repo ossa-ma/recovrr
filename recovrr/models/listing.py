@@ -1,34 +1,32 @@
-"""Listing model for marketplace listings."""
-
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any
 from pydantic import BaseModel, HttpUrl, Field
 
 
 class Listing(BaseModel):
     """Model for storing marketplace listings."""
     
-    id: Optional[int] = None
+    id: int | None = None
     url: str = Field(..., description="Listing URL")
     
     # Listing details
     title: str = Field(..., description="Listing title")
-    description: Optional[str] = Field(None, description="Listing description")
-    price: Optional[float] = Field(None, description="Listed price")
-    location: Optional[str] = Field(None, description="Item location")
-    image_urls: Optional[List[str]] = Field(default_factory=list, description="Image URLs")
+    description: str | None = Field(None, description="Listing description")
+    price: float | None = Field(None, description="Listed price")
+    location: str | None = Field(None, description="Item location")
+    image_urls: list[str] | None = Field(default_factory=list, description="Image URLs")
     
     # Marketplace info
     marketplace: str = Field(..., description="Marketplace name (ebay, facebook, etc.)")
-    external_id: Optional[str] = Field(None, description="External marketplace ID")
+    external_id: str | None = Field(None, description="External marketplace ID")
     
     # Status tracking
     status: str = Field("new", description="Processing status")
     # Status values: 'new', 'analyzed', 'match_found', 'ignored'
     
     # Timestamps
-    created_at: Optional[datetime] = None
-    scraped_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    scraped_at: datetime | None = None
     
     class Config:
         """Pydantic configuration."""
@@ -37,7 +35,7 @@ class Listing(BaseModel):
             datetime: lambda v: v.isoformat() if v else None
         }
     
-    def to_analysis_dict(self) -> Dict[str, Any]:
+    def to_analysis_dict(self) -> dict[str, Any]:
         """Convert to dictionary for AI analysis."""
         return {
             "title": self.title,
@@ -49,7 +47,7 @@ class Listing(BaseModel):
             "image_urls": self.image_urls or []
         }
     
-    def to_db_dict(self) -> Dict[str, Any]:
+    def to_db_dict(self) -> dict[str, Any]:
         """Convert to dictionary for database operations (excluding None values)."""
         data = self.model_dump(exclude_none=True, exclude={"id"})
         # Ensure timestamps are properly formatted

@@ -3,7 +3,7 @@
 import asyncio
 import contextlib
 import logging
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 import postgrest
 from supabase import AsyncClient
@@ -24,12 +24,8 @@ async def create_supabase(url: str, key: str) -> Client:
 
 class SupabaseDB:
     """Main Supabase database client."""
-    
-    def __init__(
-        self, 
-        uri: str | None = None, 
-        key: str | None = None
-    ) -> None:
+
+    def __init__(self, uri: str | None = None, key: str | None = None) -> None:
         self._uri: str = uri or settings.supabase_url
         self._key: str = key or settings.supabase_key
         self._client: AsyncClient | None = None
@@ -57,7 +53,7 @@ class SupabaseDB:
     @contextlib.asynccontextmanager
     async def get_sql(self):
         """Retrieve Supabase SQL function.
-        
+
         Allows us to execute predefined Supabase-hosted SQL functions through RPC.
         """
         async with self.get_client() as client:
@@ -70,8 +66,8 @@ supabase = SupabaseDB()
 
 class SearchProfileDB:
     """Database operations for search profiles."""
-    
-    async def create_search_profile(self, profile_data: Dict[str, Any]) -> SearchProfile:
+
+    async def create_search_profile(self, profile_data: dict[str, Any]) -> SearchProfile:
         """Create a new search profile."""
         async with supabase.get_table("search_profiles") as table:
             try:
@@ -88,21 +84,23 @@ class SearchProfileDB:
                 raise ValueError(f"Search profile with ID {profile_id} not found.")
             return SearchProfile.model_validate(request.data[0])
 
-    async def get_all_search_profiles(self) -> List[SearchProfile]:
+    async def get_all_search_profiles(self) -> list[SearchProfile]:
         """Get all search profiles."""
         async with supabase.get_table("search_profiles") as table:
             request = await table.select("*").execute()
             data = request.data if request.data else []
             return [SearchProfile.model_validate(d) for d in data]
 
-    async def get_active_search_profiles(self) -> List[SearchProfile]:
+    async def get_active_search_profiles(self) -> list[SearchProfile]:
         """Get all active search profiles."""
         async with supabase.get_table("search_profiles") as table:
             request = await table.select("*").eq("active", True).execute()
             data = request.data if request.data else []
             return [SearchProfile.model_validate(d) for d in data]
 
-    async def update_search_profile(self, profile_id: int, updates: Dict[str, Any]) -> SearchProfile:
+    async def update_search_profile(
+        self, profile_id: int, updates: dict[str, Any]
+    ) -> SearchProfile:
         """Update a search profile."""
         async with supabase.get_table("search_profiles") as table:
             request = await table.update(updates).eq("id", profile_id).execute()
@@ -116,7 +114,7 @@ class SearchProfileDB:
             request = await table.delete().eq("id", profile_id).execute()
             return len(request.data) > 0
 
-    async def get_search_profile_by_email(self, email: str) -> List[SearchProfile]:
+    async def get_search_profile_by_email(self, email: str) -> list[SearchProfile]:
         """Get search profiles by owner email."""
         async with supabase.get_table("search_profiles") as table:
             request = await table.select("*").eq("owner_email", email).execute()
@@ -126,8 +124,8 @@ class SearchProfileDB:
 
 class ListingDB:
     """Database operations for marketplace listings."""
-    
-    async def create_listing(self, listing_data: Dict[str, Any]) -> Listing:
+
+    async def create_listing(self, listing_data: dict[str, Any]) -> Listing:
         """Create a new listing."""
         async with supabase.get_table("listings") as table:
             try:
@@ -144,7 +142,7 @@ class ListingDB:
                 raise ValueError(f"Listing with ID {listing_id} not found.")
             return Listing.model_validate(request.data[0])
 
-    async def get_listing_by_url(self, url: str) -> Optional[Listing]:
+    async def get_listing_by_url(self, url: str) -> Listing | None:
         """Get a listing by URL."""
         async with supabase.get_table("listings") as table:
             request = await table.select("*").eq("url", url).execute()
@@ -152,18 +150,18 @@ class ListingDB:
                 return None
             return Listing.model_validate(request.data[0])
 
-    async def get_listings_by_status(self, status: str) -> List[Listing]:
+    async def get_listings_by_status(self, status: str) -> list[Listing]:
         """Get listings by status."""
         async with supabase.get_table("listings") as table:
             request = await table.select("*").eq("status", status).execute()
             data = request.data if request.data else []
             return [Listing.model_validate(d) for d in data]
 
-    async def get_new_listings(self) -> List[Listing]:
+    async def get_new_listings(self) -> list[Listing]:
         """Get all new listings."""
         return await self.get_listings_by_status("new")
 
-    async def update_listing(self, listing_id: int, updates: Dict[str, Any]) -> Listing:
+    async def update_listing(self, listing_id: int, updates: dict[str, Any]) -> Listing:
         """Update a listing."""
         async with supabase.get_table("listings") as table:
             request = await table.update(updates).eq("id", listing_id).execute()
@@ -171,7 +169,7 @@ class ListingDB:
                 raise ValueError(f"Listing with ID {listing_id} not found.")
             return Listing.model_validate(request.data[0])
 
-    async def bulk_update_listing_status(self, listing_ids: List[int], new_status: str) -> bool:
+    async def bulk_update_listing_status(self, listing_ids: list[int], new_status: str) -> bool:
         """Bulk update listing statuses."""
         async with supabase.get_table("listings") as table:
             request = await table.update({"status": new_status}).in_("id", listing_ids).execute()
@@ -183,18 +181,20 @@ class ListingDB:
             request = await table.select("url").execute()
             return {row["url"] for row in request.data} if request.data else set()
 
-    async def search_listings_by_text(self, search_query: str, limit: int = 20) -> List[Listing]:
+    async def search_listings_by_text(self, search_query: str, limit: int = 20) -> list[Listing]:
         """Search listings using full-text search."""
         async with supabase.get_table("listings") as table:
-            request = await table.select("*").text_search("title", search_query).limit(limit).execute()
+            request = (
+                await table.select("*").text_search("title", search_query).limit(limit).execute()
+            )
             data = request.data if request.data else []
             return [Listing.model_validate(d) for d in data]
 
 
 class AnalysisResultDB:
     """Database operations for analysis results."""
-    
-    async def create_analysis_result(self, analysis_data: Dict[str, Any]) -> AnalysisResult:
+
+    async def create_analysis_result(self, analysis_data: dict[str, Any]) -> AnalysisResult:
         """Create a new analysis result."""
         async with supabase.get_table("analysis_results") as table:
             try:
@@ -211,28 +211,30 @@ class AnalysisResultDB:
                 raise ValueError(f"Analysis result with ID {result_id} not found.")
             return AnalysisResult.model_validate(request.data[0])
 
-    async def get_analysis_results_for_listing(self, listing_id: int) -> List[AnalysisResult]:
+    async def get_analysis_results_for_listing(self, listing_id: int) -> list[AnalysisResult]:
         """Get all analysis results for a listing."""
         async with supabase.get_table("analysis_results") as table:
             request = await table.select("*").eq("listing_id", listing_id).execute()
             data = request.data if request.data else []
             return [AnalysisResult.model_validate(d) for d in data]
 
-    async def get_analysis_results_for_profile(self, profile_id: int) -> List[AnalysisResult]:
+    async def get_analysis_results_for_profile(self, profile_id: int) -> list[AnalysisResult]:
         """Get all analysis results for a search profile."""
         async with supabase.get_table("analysis_results") as table:
             request = await table.select("*").eq("search_profile_id", profile_id).execute()
             data = request.data if request.data else []
             return [AnalysisResult.model_validate(d) for d in data]
 
-    async def get_high_confidence_matches(self, min_score: float = 7.0) -> List[AnalysisResult]:
+    async def get_high_confidence_matches(self, min_score: float = 7.0) -> list[AnalysisResult]:
         """Get high confidence matches."""
         async with supabase.get_table("analysis_results") as table:
             request = await table.select("*").gte("match_score", min_score).execute()
             data = request.data if request.data else []
             return [AnalysisResult.model_validate(d) for d in data]
 
-    async def update_analysis_result(self, result_id: int, updates: Dict[str, Any]) -> AnalysisResult:
+    async def update_analysis_result(
+        self, result_id: int, updates: dict[str, Any]
+    ) -> AnalysisResult:
         """Update an analysis result."""
         async with supabase.get_table("analysis_results") as table:
             request = await table.update(updates).eq("id", result_id).execute()
@@ -243,61 +245,64 @@ class AnalysisResultDB:
     async def mark_notification_sent(self, result_id: int) -> AnalysisResult:
         """Mark an analysis result as having notification sent."""
         from datetime import datetime
-        return await self.update_analysis_result(result_id, {
-            "notification_sent": True,
-            "notification_sent_at": datetime.now().isoformat()
-        })
 
-    async def get_profile_analytics(self, profile_id: int) -> Dict[str, Any]:
+        return await self.update_analysis_result(
+            result_id,
+            {"notification_sent": True, "notification_sent_at": datetime.now().isoformat()},
+        )
+
+    async def get_profile_analytics(self, profile_id: int) -> dict[str, Any]:
         """Get analytics for a specific search profile."""
         async with supabase.get_table("analysis_results") as table:
             request = await table.select("*").eq("search_profile_id", profile_id).execute()
             results = request.data if request.data else []
-            
+
             if not results:
                 return {
                     "total_analyses": 0,
                     "avg_match_score": 0,
                     "high_confidence_matches": 0,
-                    "notifications_sent": 0
+                    "notifications_sent": 0,
                 }
-            
+
             match_scores = [r["match_score"] for r in results]
             return {
                 "total_analyses": len(results),
                 "avg_match_score": sum(match_scores) / len(match_scores),
                 "high_confidence_matches": len([r for r in results if r["match_score"] >= 8.0]),
-                "notifications_sent": len([r for r in results if r["notification_sent"]])
+                "notifications_sent": len([r for r in results if r["notification_sent"]]),
             }
 
 
 class DashboardDB:
     """Database operations for dashboard statistics."""
-    
-    async def get_dashboard_stats(self) -> Dict[str, Any]:
+
+    async def get_dashboard_stats(self) -> dict[str, Any]:
         """Get overall dashboard statistics."""
         stats = {}
-        
+
         # Get total active search profiles
         async with supabase.get_table("search_profiles") as table:
             request = await table.select("id").eq("active", True).execute()
             stats["active_profiles"] = len(request.data) if request.data else 0
-        
+
         # Get total listings
         async with supabase.get_table("listings") as table:
             request = await table.select("id").execute()
             stats["total_listings"] = len(request.data) if request.data else 0
-        
+
         # Get matches found (high confidence)
         async with supabase.get_table("analysis_results") as table:
             request = await table.select("id").gte("match_score", 7.0).execute()
             stats["matches_found"] = len(request.data) if request.data else 0
-        
+
         # Get recent activity (last 24 hours)
+        from datetime import datetime, timedelta
+        twenty_four_hours_ago = (datetime.now() - timedelta(hours=24)).isoformat()
         async with supabase.get_table("listings") as table:
-            request = await table.select("id").gte("created_at", "now() - interval '24 hours'").execute()
+            request = await table.select("id").gte("created_at", twenty_four_hours_ago).execute()
             stats["recent_listings"] = len(request.data) if request.data else 0
-        
+
         return stats
 
 

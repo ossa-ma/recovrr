@@ -1,6 +1,3 @@
-"""Settings and configuration management for Recovrr."""
-
-from typing import Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -21,16 +18,16 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(description="Anthropic API key to be passed to Agents framework")
 
     # Notification settings
-    sendgrid_api_key: Optional[str] = Field(
+    sendgrid_api_key: str | None = Field(
         default=None, description="SendGrid API key for email notifications"
     )
-    twilio_account_sid: Optional[str] = Field(
+    twilio_account_sid: str | None = Field(
         default=None, description="Twilio Account SID for SMS notifications"
     )
-    twilio_auth_token: Optional[str] = Field(
+    twilio_auth_token: str | None = Field(
         default=None, description="Twilio Auth Token for SMS notifications"
     )
-    twilio_phone_number: Optional[str] = Field(
+    twilio_phone_number: str | None = Field(
         default=None, description="Twilio phone number for sending SMS"
     )
 

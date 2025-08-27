@@ -19,9 +19,9 @@ class BaseNotifier(ABC):
     async def send_match_notification(
         self,
         recipient: str,
-        search_profile: Dict[str, Any],
-        listing: Dict[str, Any],
-        analysis_result: Dict[str, Any]
+        search_profile: dict[str, Any],
+        listing: dict[str, Any],
+        analysis_result: dict[str, Any]
     ) -> bool:
         """Send a notification about a potential match.
         
@@ -57,9 +57,9 @@ class BaseNotifier(ABC):
         
     def format_match_message(
         self,
-        search_profile: Dict[str, Any],
-        listing: Dict[str, Any],
-        analysis_result: Dict[str, Any]
+        search_profile: dict[str, Any],
+        listing: dict[str, Any],
+        analysis_result: dict[str, Any]
     ) -> Dict[str, str]:
         """Format the match notification message.
         

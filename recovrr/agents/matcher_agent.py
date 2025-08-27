@@ -57,9 +57,9 @@ Always provide your response in this exact JSON format:
 
     async def check_match(
         self, 
-        listing_details: Dict[str, Any], 
-        search_profile: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        listing_details: dict[str, Any], 
+        search_profile: dict[str, Any]
+    ) -> dict[str, Any]:
         """Analyze a listing against a search profile for potential matches.
         
         Args:
@@ -103,8 +103,8 @@ Always provide your response in this exact JSON format:
     
     def _create_analysis_prompt(
         self, 
-        listing_details: Dict[str, Any], 
-        search_profile: Dict[str, Any]
+        listing_details: dict[str, Any], 
+        search_profile: dict[str, Any]
     ) -> str:
         """Create the user prompt for analysis."""
         return f"""
@@ -135,7 +135,7 @@ Consider the price point and seller behavior if relevant.
 Provide your analysis in the required JSON format.
 """
     
-    def _validate_response(self, result: Dict[str, Any]) -> None:
+    def _validate_response(self, result: dict[str, Any]) -> None:
         """Validate the AI response structure."""
         required_fields = [
             "match_score", "confidence_level", "reasoning", 
@@ -158,7 +158,7 @@ Provide your analysis in the required JSON format.
         if result["recommendation"] not in ["investigate", "ignore", "high_priority"]:
             raise ValueError("Recommendation must be 'investigate', 'ignore', or 'high_priority'")
     
-    def _create_error_response(self, error_message: str) -> Dict[str, Any]:
+    def _create_error_response(self, error_message: str) -> dict[str, Any]:
         """Create a standardized error response."""
         return {
             "match_score": 0.0,
@@ -169,7 +169,7 @@ Provide your analysis in the required JSON format.
             "recommendation": "ignore"
         }
     
-    def should_notify(self, analysis_result: Dict[str, Any]) -> bool:
+    def should_notify(self, analysis_result: dict[str, Any]) -> bool:
         """Determine if a notification should be sent based on analysis results.
         
         Args:

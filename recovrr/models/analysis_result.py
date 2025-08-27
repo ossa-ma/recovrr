@@ -1,14 +1,12 @@
-"""Analysis result model for AI matching results."""
-
 from datetime import datetime
-from typing import Optional, List
+
 from pydantic import BaseModel, Field
 
 
 class AnalysisResult(BaseModel):
     """Model for storing AI analysis results."""
     
-    id: Optional[int] = None
+    id: int | None = None
     
     # Foreign keys
     listing_id: int = Field(..., description="ID of the analyzed listing")
@@ -16,24 +14,24 @@ class AnalysisResult(BaseModel):
     
     # Analysis results
     match_score: float = Field(..., ge=0, le=10, description="Match score (0-10)")
-    reasoning: Optional[str] = Field(None, description="AI reasoning for the score")
+    reasoning: str | None = Field(None, description="AI reasoning for the score")
     confidence_level: str = Field(..., description="Confidence level (low, medium, high)")
-    key_indicators: Optional[List[str]] = Field(default_factory=list, description="Key matching indicators")
-    concerns: Optional[List[str]] = Field(default_factory=list, description="Concerns or missing info")
+    key_indicators: list[str] | None = Field(default_factory=list, description="Key matching indicators")
+    concerns: list[str] | None = Field(default_factory=list, description="Concerns or missing info")
     recommendation: str = Field(..., description="Recommendation (investigate, ignore, high_priority)")
     
     # AI model info
-    model_used: Optional[str] = Field(None, description="AI model used for analysis")
-    analysis_version: Optional[str] = Field(None, description="Analysis algorithm version")
+    model_used: str | None = Field(None, description="AI model used for analysis")
+    analysis_version: str | None = Field(None, description="Analysis algorithm version")
     
     # Status and actions
     notification_sent: bool = Field(False, description="Whether notification was sent")
     reviewed_by_human: bool = Field(False, description="Whether reviewed by human")
-    is_false_positive: Optional[bool] = Field(None, description="Human feedback on accuracy")
+    is_false_positive: bool | None = Field(None, description="Human feedback on accuracy")
     
     # Timestamps
-    analyzed_at: Optional[datetime] = None
-    notification_sent_at: Optional[datetime] = None
+    analyzed_at: datetime | None = None
+    notification_sent_at: datetime | None = None
     
     class Config:
         """Pydantic configuration."""

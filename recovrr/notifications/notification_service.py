@@ -42,9 +42,9 @@ class NotificationService:
             
     async def send_match_alert(
         self,
-        search_profile: Dict[str, Any],
-        listing: Dict[str, Any],
-        analysis_result: Dict[str, Any]
+        search_profile: dict[str, Any],
+        listing: dict[str, Any],
+        analysis_result: dict[str, Any]
     ) -> Dict[str, bool]:
         """Send match alerts through all configured notification methods.
         
@@ -92,10 +92,10 @@ class NotificationService:
         
     async def send_system_alert(
         self,
-        recipients: List[str],
+        recipients: list[str],
         subject: str,
         message: str,
-        methods: Optional[List[str]] = None
+        methods: Optional[list[str]] = None
     ) -> Dict[str, Dict[str, bool]]:
         """Send system alerts to specified recipients.
         
@@ -171,7 +171,7 @@ class NotificationService:
                 
         return results
         
-    def get_available_methods(self) -> List[str]:
+    def get_available_methods(self) -> list[str]:
         """Get list of available notification methods.
         
         Returns:

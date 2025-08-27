@@ -36,7 +36,7 @@ class FacebookScraper(BaseScraper):
             'Upgrade-Insecure-Requests': '1',
         })
             
-    async def search(self, search_terms: str, location: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def search(self, search_terms: str, location: Optional[str] = None) -> List[dict[str, Any]]:
         """Search Facebook Marketplace for items.
         
         Args:
@@ -78,7 +78,7 @@ class FacebookScraper(BaseScraper):
             logger.error(f"Error searching Facebook Marketplace: {e}")
             return []
             
-    def _parse_search_results(self, html: str) -> List[Dict[str, Any]]:
+    def _parse_search_results(self, html: str) -> List[dict[str, Any]]:
         """Parse Facebook Marketplace search results.
         
         Args:
@@ -112,7 +112,7 @@ class FacebookScraper(BaseScraper):
             
         return listings
         
-    def _parse_listing(self, listing_element) -> Optional[Dict[str, Any]]:
+    def _parse_listing(self, listing_element) -> Optional[dict[str, Any]]:
         """Parse a single Facebook Marketplace listing.
         
         Args:
@@ -182,7 +182,7 @@ class FacebookScraper(BaseScraper):
             logger.warning(f"Error parsing Facebook listing element: {e}")
             return None
             
-    async def get_listing_details(self, listing_url: str) -> Optional[Dict[str, Any]]:
+    async def get_listing_details(self, listing_url: str) -> Optional[dict[str, Any]]:
         """Get detailed information for a specific Facebook listing.
         
         Args:
