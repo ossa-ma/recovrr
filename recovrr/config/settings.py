@@ -13,9 +13,16 @@ class Settings(BaseSettings):
     supabase_url: str = Field(description="Supabase project URL")
     supabase_key: str = Field(description="Supabase anon/service role key")
 
-    # AI/LLM settings (handled by agents framework)
-    openai_api_key: str = Field(description="OpenAI API key to be passed to Agents framework")
-    anthropic_api_key: str = Field(description="Anthropic API key to be passed to Agents framework")
+    # AI/LLM settings for agents framework
+    gemini_api_key: str | None = Field(default=None, description="Google Gemini API key for AI analysis")
+    openai_api_key: str | None = Field(default=None, description="OpenAI API key (alternative to Gemini)")
+    anthropic_api_key: str | None = Field(default=None, description="Anthropic API key (alternative to Gemini)")
+    
+    # AI model configuration
+    default_model_name: str = Field(default="gemini-2.0-flash-001", description="Default AI model to use")
+    ai_temperature: float = Field(default=0.1, description="AI temperature for consistent analysis")
+    ai_max_tokens: int = Field(default=4096, description="Maximum tokens for AI responses")
+    ai_top_k: int = Field(default=25, description="Top-k parameter for Gemini model")
 
     # Notification settings
     sendgrid_api_key: str | None = Field(

@@ -8,7 +8,7 @@ from recovrr.database.supabase import (
 from recovrr.models.search_profile import SearchProfile
 from recovrr.scrapers.ebay_scraper import EbayScraper
 from recovrr.scrapers.facebook_scraper import FacebookScraper
-from recovrr.agents.matcher_agent import MatcherAgent
+from recovrr.agents.matcher_agent import create_matcher_agent
 from recovrr.notifications.notification_service import NotificationService
 from recovrr.scheduler.monitoring_job import MonitoringJob
 
@@ -39,7 +39,7 @@ async def test_ai_agent():
     print("\n🤖 Testing AI Agent...")
 
     try:
-        agent = MatcherAgent()
+        agent = create_matcher_agent()
 
         # Test listing
         test_listing = {

@@ -77,8 +77,8 @@ class EbayScraper(BaseScraper):
         soup = BeautifulSoup(html, 'html.parser')
         listings = []
         
-        # Find listing containers
-        listing_elements = soup.find_all('div', {'class': 's-item'})
+        # Find listing containers (updated for new eBay structure)
+        listing_elements = soup.find_all('li', {'class': 's-card'})
         
         for element in listing_elements:
             try:
@@ -101,39 +101,46 @@ class EbayScraper(BaseScraper):
             Parsed listing dictionary or None
         """
         try:
-            # Extract title
-            title_elem = listing_element.find('h3', {'class': 's-item__title'})
+            # Extract title from new structure
+            title_elem = listing_element.find('span', {'class': 'su-styled-text primary default'})
             if not title_elem:
                 return None
             title = self._clean_text(title_elem.get_text())
             
-            # Extract URL
-            link_elem = listing_element.find('a', {'class': 's-item__link'})
+            # Extract URL from link in the card
+            link_elem = listing_element.find('a', class_='su-card-container__header')
             if not link_elem or not link_elem.get('href'):
                 return None
             url = link_elem['href'].split('?')[0]  # Remove parameters
             
-            # Extract price
-            price_elem = listing_element.find('span', {'class': 's-item__price'})
+            # Extract price from new structure
+            price_elem = listing_element.find('span', {'class': 'su-styled-text primary bold medium s-card__price'}) or \
+                        listing_element.find('span', {'class': 'su-styled-text primary italic medium s-card__price'})
             price = None
             if price_elem:
                 price_text = price_elem.get_text()
                 price = self._clean_price(price_text)
                 
-            # Extract location
-            location_elem = listing_element.find('span', {'class': 's-item__location'})
+            # Extract location - look for location info in attribute rows
             location = None
-            if location_elem:
-                location = self._clean_text(location_elem.get_text())
-                
-            # Extract image URL
-            img_elem = listing_element.find('img', {'class': 's-item__image'})
+            location_patterns = ['Located in', 'From']
+            for span in listing_element.find_all('span', {'class': 'su-styled-text secondary small'}):
+                text = span.get_text()
+                for pattern in location_patterns:
+                    if pattern in text:
+                        location = self._clean_text(text.replace(pattern, '').strip())
+                        break
+                if location:
+                    break
+                    
+            # Extract image URL from new structure
+            img_elem = listing_element.find('img', {'class': 's-card__image'})
             image_urls = []
             if img_elem and img_elem.get('src'):
                 image_urls = [img_elem['src']]
                 
-            # Extract condition/description (if available in search results)
-            condition_elem = listing_element.find('span', {'class': 'SECONDARY_INFO'})
+            # Extract condition from subtitle
+            condition_elem = listing_element.find('span', {'class': 'su-styled-text secondary default'})
             description = ""
             if condition_elem:
                 description = self._clean_text(condition_elem.get_text())

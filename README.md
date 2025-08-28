@@ -29,7 +29,7 @@ recovrr/
 - Python 3.13+
 - `uv` package manager
 - Supabase project
-- OpenAI or Anthropic API key
+- Google Gemini API key (or OpenAI/Anthropic as alternatives)
 - SendGrid API key (optional, for email)
 - Twilio credentials (optional, for SMS)
 
@@ -74,6 +74,8 @@ SUPABASE_URL=your-project-url
 SUPABASE_KEY=your-anon-key
 
 # AI (choose one)
+GEMINI_API_KEY=your-gemini-key
+# OR
 OPENAI_API_KEY=your-openai-key
 # OR
 ANTHROPIC_API_KEY=your-anthropic-key

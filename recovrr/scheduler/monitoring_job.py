@@ -11,7 +11,7 @@ from recovrr.models.search_profile import SearchProfile
 from recovrr.models.listing import Listing
 from recovrr.models.analysis_result import AnalysisResult
 from recovrr.scrapers.scraper_factory import ScraperFactory
-from recovrr.agents.matcher_agent import MatcherAgent
+from recovrr.agents.matcher_agent import create_matcher_agent
 from recovrr.notifications.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,13 @@ class MonitoringJob:
     def __init__(self):
         """Initialize the monitoring job."""
         self.notification_service = NotificationService()
-        self.matcher_agent = MatcherAgent()
+        self.matcher_agent = None  # Will be created lazily
+    
+    def _get_matcher_agent(self):
+        """Get or create the matcher agent instance."""
+        if self.matcher_agent is None:
+            self.matcher_agent = create_matcher_agent()
+        return self.matcher_agent
         
     async def run_monitoring_cycle(self) -> dict[str, Any]:
         """Run a complete monitoring cycle.
@@ -195,7 +201,8 @@ class MonitoringJob:
             for profile in search_profiles:
                 try:
                     # Run AI analysis
-                    analysis_result = await self.matcher_agent.check_match(
+                    matcher_agent = self._get_matcher_agent()
+                    analysis_result = await matcher_agent.check_match(
                         listing_data, profile.to_search_dict()
                     )
                     
@@ -214,7 +221,7 @@ class MonitoringJob:
                         key_indicators=analysis_result.get('key_indicators', []),
                         concerns=analysis_result.get('concerns', []),
                         recommendation=analysis_result['recommendation'],
-                        model_used=self.matcher_agent.model_name,
+                        model_used=matcher_agent.model_name,
                         analyzed_at=datetime.now()
                     )
                     
@@ -229,7 +236,7 @@ class MonitoringJob:
                         await listing_db.update_listing(listing.id, {'status': 'analyzed'})
                         
                     # Send notification if needed
-                    if self.matcher_agent.should_notify(analysis_result):
+                    if matcher_agent.should_notify(analysis_result):
                         try:
                             notification_results = await self.notification_service.send_match_alert(
                                 profile.to_search_dict(), listing_data, analysis_result
