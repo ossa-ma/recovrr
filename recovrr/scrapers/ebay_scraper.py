@@ -1,12 +1,13 @@
 """eBay marketplace scraper."""
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 from bs4 import BeautifulSoup
 
 from .base_scraper import BaseScraper
+from recovrr.models.listing import Listing
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class EbayScraper(BaseScraper):
         self.base_url = "https://www.ebay.com"
         self.search_url = f"{self.base_url}/sch/i.html"
         
-    async def search(self, search_terms: str, location: Optional[str] = None) -> List[dict[str, Any]]:
+    async def search(self, search_terms: str, location: str | None = None) -> list[Listing]:
         """Search eBay for items.
         
         Args:
@@ -28,7 +29,7 @@ class EbayScraper(BaseScraper):
             location: Optional location filter
             
         Returns:
-            List of listing dictionaries
+            List of standardized listing objects
         """
         try:
             # Build search parameters
@@ -65,14 +66,14 @@ class EbayScraper(BaseScraper):
             logger.error(f"Error searching eBay: {e}")
             return []
             
-    def _parse_search_results(self, html: str) -> List[dict[str, Any]]:
+    def _parse_search_results(self, html: str) -> list[Listing]:
         """Parse eBay search results page.
         
         Args:
             html: HTML content of search results page
             
         Returns:
-            List of parsed listings
+            List of standardized listing objects
         """
         soup = BeautifulSoup(html, 'html.parser')
         listings = []
@@ -91,78 +92,74 @@ class EbayScraper(BaseScraper):
                 
         return listings
         
-    def _parse_listing(self, listing_element) -> Optional[dict[str, Any]]:
+    def _parse_listing(self, listing_element) -> Listing | None:
         """Parse a single eBay listing.
         
         Args:
             listing_element: BeautifulSoup element containing listing
             
         Returns:
-            Parsed listing dictionary or None
+            Standardized listing object or None
         """
         try:
-            # Extract title from new structure
+            # Extract title
             title_elem = listing_element.find('span', {'class': 'su-styled-text primary default'})
             if not title_elem:
                 return None
             title = self._clean_text(title_elem.get_text())
             
-            # Extract URL from link in the card
+            # Extract URL
             link_elem = listing_element.find('a', class_='su-card-container__header')
             if not link_elem or not link_elem.get('href'):
                 return None
-            url = link_elem['href'].split('?')[0]  # Remove parameters
+            url = link_elem['href']
             
-            # Extract price from new structure
+            # Extract external ID from URL (eBay item ID)
+            external_id = url.split('/itm/')[-1].split('?')[0] if '/itm/' in url else url.split('/')[-1]
+            
+            # Extract price
             price_elem = listing_element.find('span', {'class': 'su-styled-text primary bold medium s-card__price'}) or \
                         listing_element.find('span', {'class': 'su-styled-text primary italic medium s-card__price'})
             price = None
             if price_elem:
-                price_text = price_elem.get_text()
-                price = self._clean_price(price_text)
+                price = self._clean_price(price_elem.get_text())
                 
-            # Extract location - look for location info in attribute rows
-            location = None
-            location_patterns = ['Located in', 'From']
+            # Extract location
+            location = "Location not specified"
             for span in listing_element.find_all('span', {'class': 'su-styled-text secondary small'}):
                 text = span.get_text()
-                for pattern in location_patterns:
-                    if pattern in text:
-                        location = self._clean_text(text.replace(pattern, '').strip())
-                        break
-                if location:
+                if 'Located in' in text:
+                    location = self._clean_text(text)
                     break
                     
-            # Extract image URL from new structure
+            # Extract image
+            images = []
             img_elem = listing_element.find('img', {'class': 's-card__image'})
-            image_urls = []
             if img_elem and img_elem.get('src'):
-                image_urls = [img_elem['src']]
+                images.append(img_elem['src'])
                 
-            # Extract condition from subtitle
+            # Extract condition/description
             condition_elem = listing_element.find('span', {'class': 'su-styled-text secondary default'})
-            description = ""
-            if condition_elem:
-                description = self._clean_text(condition_elem.get_text())
-                
-            # Build listing dictionary
-            listing = {
-                'title': title,
-                'url': url,
-                'price': price,
-                'location': location,
-                'description': description,
-                'image_urls': image_urls,
-                'marketplace': self.marketplace_name
-            }
+            description = condition_elem.get_text() if condition_elem else ""
             
-            return listing
+            # Create clean Listing object
+            return Listing(
+                external_id=external_id,
+                source="ebay",
+                title=title,
+                price=price,
+                location=location,
+                url=url,
+                description=description,
+                images=images,
+                currency="USD"
+            )
             
         except Exception as e:
             logger.warning(f"Error parsing eBay listing element: {e}")
             return None
             
-    async def get_listing_details(self, listing_url: str) -> Optional[dict[str, Any]]:
+    async def get_listing_details(self, listing_url: str) -> dict[str, Any] | None:
         """Get detailed information for a specific listing.
         
         Args:

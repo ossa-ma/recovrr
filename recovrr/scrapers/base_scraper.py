@@ -58,7 +58,7 @@ class BaseScraper(ABC):
         self.last_request_time = time.time()
         
     @abstractmethod
-    async def search(self, search_terms: str, location: str | None = None) -> list[dict[str, Any]]:
+    async def search(self, search_terms: str, location: str | None = None) -> list[Any]:
         """Search for items on the marketplace.
         
         Args:
@@ -66,19 +66,19 @@ class BaseScraper(ABC):
             location: Optional location filter
             
         Returns:
-            List of listing dictionaries
+            List of Listing objects
         """
         pass
         
     @abstractmethod
-    def _parse_listing(self, listing_element: Any) -> dict[str, Any] | None:
+    def _parse_listing(self, listing_element: Any) -> Any | None:
         """Parse a single listing from the marketplace.
         
         Args:
             listing_element: Raw listing element/data from the marketplace
             
         Returns:
-            Parsed listing dictionary or None if parsing failed
+            Listing object or None if parsing failed
         """
         pass
         
@@ -123,14 +123,14 @@ class BaseScraper(ABC):
         # Remove extra whitespace and normalize
         return ' '.join(text.strip().split())
         
-    async def scrape_search_profile(self, search_profile: dict[str, Any]) -> list[dict[str, Any]]:
+    async def scrape_search_profile(self, search_profile: dict[str, Any]) -> list[Any]:
         """Scrape listings for a specific search profile.
         
         Args:
             search_profile: Search profile dictionary (from Pydantic model)
             
         Returns:
-            List of new listings
+            List of Listing objects
         """
         try:
             # Build search terms from profile
@@ -141,12 +141,6 @@ class BaseScraper(ABC):
             
             # Perform the search
             listings = await self.search(search_terms, location)
-            
-            # Add marketplace identifier and timestamp to each listing
-            from datetime import datetime
-            for listing in listings:
-                listing['marketplace'] = self.marketplace_name
-                listing['scraped_at'] = datetime.now().isoformat()
                 
             logger.info(f"Found {len(listings)} listings on {self.marketplace_name}")
             return listings
